@@ -1,0 +1,11 @@
+services:
+
+  wallet-exporter:
+    image: wallet-exporter:latest
+    command: ["--config", "/app/config/config.toml"]
+    container_name: wallet-exporter
+    restart: always
+    ports:
+      - 9550:9550
+    volumes:
+      - /home/user/config/config.toml:/app/config/config.toml
