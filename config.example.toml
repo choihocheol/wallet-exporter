@@ -15,8 +15,12 @@ json = false
 [[chains]]
 # Chain name, the one that will go into metric "chain" label.
 name = "bitsong"
-# LCD host to query balances against.
-lcd-endpoint = "https://lcd-bitsong-app.cosmostation.io"
+# Chain type, evm or cosmossdk.
+type = "cosmossdk"
+# Host to query balances against.
+# In case of cosmossdk chains, this is the LCD endpoint.
+# In case of evm chains, this is the json-rpc endpoint.
+query-endpoint = "https://lcd-bitsong-app.cosmostation.io"
 # Coingecko currency, specify it if you want to also get the wallet balance
 # in total in USD.
 
@@ -58,7 +62,8 @@ wallets = [
 # ... as well as multiple chains ...
 [[chains]]
 name = "sentinel"
-lcd-endpoint = "https://lcd-sentinel-app.cosmostation.io"
+type = "cosmossdk"
+query-endpoint = "https://lcd-sentinel-app.cosmostation.io"
 coingecko-currency = "sentinel"
 denoms = [
     { denom = "udvpn", display-denom = "dvpn", coingecko-currency = "sentinel" }

@@ -27,7 +27,7 @@ type RPC struct {
 func NewRPC(chain config.Chain, logger zerolog.Logger, tracer trace.Tracer) *RPC {
 	return &RPC{
 		Client:          http.NewClient(logger, chain.Name, tracer),
-		URL:             chain.LCDEndpoint,
+		URL:             chain.QueryEndpoint,
 		Logger:          logger.With().Str("component", "rpc").Logger(),
 		LastQueryHeight: make(map[string]int64),
 		Tracer:          tracer,

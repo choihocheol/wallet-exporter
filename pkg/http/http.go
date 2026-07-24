@@ -1,6 +1,7 @@
 package http
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"main/pkg/types"
@@ -29,7 +30,7 @@ func NewClient(logger zerolog.Logger, chain string, tracer trace.Tracer) *Client
 
 func (c *Client) Get(
 	url string,
-	target interface{},
+	target any,
 	predicate types.HTTPPredicate,
 	ctx context.Context,
 ) (types.QueryInfo, http.Header, error) {
@@ -78,6 +79,90 @@ func (c *Client) Get(
 		Str("url", url).
 		Dur("duration", time.Since(start)).
 		Msg("Query is finished")
+
+	if predicateErr := predicate(res); predicateErr != nil {
+		return queryInfo, res.Header, predicateErr
+	}
+
+	err = json.NewDecoder(res.Body).Decode(target)
+	queryInfo.Success = err == nil
+
+	return queryInfo, res.Header, err
+}
+
+func (c *Client) Post(
+	url string,
+	body any,
+	target any,
+	predicate types.HTTPPredicate,
+	ctx context.Context,
+) (types.QueryInfo, http.Header, error) {
+	childCtx, span := c.tracer.Start(ctx, "HTTP request")
+	defer span.End()
+
+	var transport http.RoundTripper
+
+	transportRaw, ok := http.DefaultTransport.(*http.Transport)
+	if ok {
+		transport = transportRaw.Clone()
+	} else {
+		transport = http.DefaultTransport
+	}
+
+	client := &http.Client{
+		Timeout:   10 * time.Second,
+		Transport: otelhttp.NewTransport(transport),
+	}
+
+	start := time.Now()
+
+	queryInfo := types.QueryInfo{
+		Success: false,
+		Chain:   c.chain,
+		URL:     url,
+	}
+
+	payload, err := json.Marshal(body)
+	if err != nil {
+		return queryInfo, nil, err
+	}
+
+	req, err := http.NewRequestWithContext(
+		childCtx,
+		http.MethodPost,
+		url,
+		bytes.NewReader(payload),
+	)
+	if err != nil {
+		return queryInfo, nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "wallet-exporter")
+
+	c.logger.Debug().
+		Str("url", url).
+		RawJSON("body", payload).
+		Msg("Doing a POST request...")
+
+	res, err := client.Do(req)
+	queryInfo.Duration = time.Since(start)
+
+	if err != nil {
+		c.logger.Warn().
+			Str("url", url).
+			Err(err).
+			Msg("Query failed")
+
+		return queryInfo, nil, err
+	}
+	defer res.Body.Close()
+
+	c.logger.Debug().
+		Str("url", url).
+		Int("status", res.StatusCode).
+		Dur("duration", queryInfo.Duration).
+		Msg("Query finished")
 
 	if predicateErr := predicate(res); predicateErr != nil {
 		return queryInfo, res.Header, predicateErr

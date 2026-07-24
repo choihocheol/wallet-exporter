@@ -30,9 +30,9 @@ func TestConfigValid(t *testing.T) {
 	t.Parallel()
 
 	chain := &Config{Chains: []Chain{{
-		Name:        "chain",
-		LCDEndpoint: "test",
-		Wallets:     []Wallet{{Address: "address"}},
+		Name:          "chain",
+		QueryEndpoint: "test",
+		Wallets:       []Wallet{{Address: "address"}},
 	}}}
 	err := chain.Validate()
 	require.NoError(t, err)
@@ -42,9 +42,9 @@ func TestGetCoingeckoCurrencies(t *testing.T) {
 	t.Parallel()
 
 	chain := &Config{Chains: []Chain{{
-		Name:        "chain",
-		LCDEndpoint: "test",
-		Wallets:     []Wallet{{Address: "address"}},
+		Name:          "chain",
+		QueryEndpoint: "test",
+		Wallets:       []Wallet{{Address: "address"}},
 		Denoms: []DenomInfo{
 			{Denom: "uatom", DisplayDenom: "atom", CoingeckoCurrency: "cosmos"},
 			{Denom: "unom", DisplayDenom: "nom"},

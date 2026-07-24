@@ -3,6 +3,8 @@ package queriers
 import (
 	"context"
 	"main/pkg/config"
+	"main/pkg/constants"
+	"main/pkg/evm"
 	"main/pkg/tendermint"
 	"main/pkg/types"
 	"math"
@@ -15,10 +17,14 @@ import (
 	"github.com/rs/zerolog"
 )
 
+type RPC interface {
+	GetWalletBalances(address string, ctx context.Context) (*types.BalanceResponse, types.QueryInfo, error)
+}
+
 type BalanceQuerier struct {
 	Config *config.Config
 	Logger zerolog.Logger
-	RPCs   []*tendermint.RPC
+	RPCs   []RPC
 	Tracer trace.Tracer
 }
 
@@ -27,10 +33,20 @@ func NewBalanceQuerier(
 	logger zerolog.Logger,
 	tracer trace.Tracer,
 ) *BalanceQuerier {
-	rpcs := make([]*tendermint.RPC, len(config.Chains))
+	rpcs := make([]RPC, len(config.Chains))
 
 	for index, chain := range config.Chains {
-		rpcs[index] = tendermint.NewRPC(chain, logger, tracer)
+		switch chain.Type {
+		case constants.ChainTypeEVM:
+			rpcs[index] = evm.NewRPC(chain, logger, tracer)
+		case constants.ChainTypeCosmosSDK:
+			rpcs[index] = tendermint.NewRPC(chain, logger, tracer)
+		default:
+			logger.Panic().
+				Str("chain", chain.Name).
+				Str("type", string(chain.Type)).
+				Msg("Unsupported chain type")
+		}
 	}
 
 	return &BalanceQuerier{
@@ -63,7 +79,7 @@ func (q *BalanceQuerier) GetMetrics(ctx context.Context) ([]prometheus.Collector
 
 		for _, wallet := range chain.Wallets {
 			wg.Add(1)
-			go func(wallet config.Wallet, chain config.Chain, rpc *tendermint.RPC) {
+			go func(wallet config.Wallet, chain config.Chain, rpc RPC) {
 				chainCtx, chainSpan := q.Tracer.Start(childCtx, "Querying chain and wallet")
 				chainSpan.SetAttributes(attribute.String("chain", chain.Name))
 				chainSpan.SetAttributes(attribute.String("wallet", wallet.Address))

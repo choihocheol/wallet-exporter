@@ -27,9 +27,9 @@ func TestBalanceQuerierFail(t *testing.T) {
 	)
 
 	config := &configPkg.Config{Chains: []configPkg.Chain{{
-		Name:        "chain",
-		LCDEndpoint: "https://example.com",
-		Wallets:     []configPkg.Wallet{{Address: "address"}},
+		Name:          "chain",
+		QueryEndpoint: "https://example.com",
+		Wallets:       []configPkg.Wallet{{Address: "address"}},
 	}}}
 
 	tracer := tracing.InitNoopTracer()
@@ -56,8 +56,8 @@ func TestBalanceQuerierOk(t *testing.T) {
 	)
 
 	config := &configPkg.Config{Chains: []configPkg.Chain{{
-		Name:        "chain",
-		LCDEndpoint: "https://example.com",
+		Name:          "chain",
+		QueryEndpoint: "https://example.com",
 		Wallets: []configPkg.Wallet{{
 			Address: "address",
 			Name:    "name",

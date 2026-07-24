@@ -6,10 +6,11 @@ import (
 )
 
 type Chain struct {
-	Name        string      `toml:"name"`
-	LCDEndpoint string      `toml:"lcd-endpoint"`
-	Denoms      []DenomInfo `toml:"denoms"`
-	Wallets     []Wallet    `toml:"wallets"`
+	Name          string      `toml:"name"`
+	Type          string      `toml:"type"`
+	QueryEndpoint string      `toml:"query-endpoint"`
+	Denoms        []DenomInfo `toml:"denoms"`
+	Wallets       []Wallet    `toml:"wallets"`
 }
 
 func (c *Chain) Validate() error {
@@ -17,7 +18,11 @@ func (c *Chain) Validate() error {
 		return errors.New("empty chain name")
 	}
 
-	if c.LCDEndpoint == "" {
+	if c.Type == "" {
+		return errors.New("empty chain type")
+	}
+
+	if c.QueryEndpoint == "" {
 		return errors.New("no LCD endpoint provided")
 	}
 

@@ -28,7 +28,7 @@ func TestChainNoLcdEndpoint(t *testing.T) {
 func TestChainNoWallets(t *testing.T) {
 	t.Parallel()
 
-	chain := &Chain{Name: "chain", LCDEndpoint: "test"}
+	chain := &Chain{Name: "chain", QueryEndpoint: "test"}
 	err := chain.Validate()
 	require.Error(t, err)
 	require.ErrorContains(t, err, "no wallets provided")
@@ -37,7 +37,7 @@ func TestChainNoWallets(t *testing.T) {
 func TestChainInvalidWallet(t *testing.T) {
 	t.Parallel()
 
-	chain := &Chain{Name: "chain", LCDEndpoint: "test", Wallets: []Wallet{{}}}
+	chain := &Chain{Name: "chain", QueryEndpoint: "test", Wallets: []Wallet{{}}}
 	err := chain.Validate()
 	require.Error(t, err)
 	require.ErrorContains(t, err, "error in wallet 0")
@@ -47,9 +47,9 @@ func TestChainValid(t *testing.T) {
 	t.Parallel()
 
 	chain := &Chain{
-		Name:        "chain",
-		LCDEndpoint: "test",
-		Wallets:     []Wallet{{Address: "address"}},
+		Name:          "chain",
+		QueryEndpoint: "test",
+		Wallets:       []Wallet{{Address: "address"}},
 	}
 	err := chain.Validate()
 	require.NoError(t, err)
