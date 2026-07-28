@@ -1,5 +1,7 @@
 FROM golang:1.22.1-bookworm AS build
 
+LABEL org.opencontainers.image.source="https://github.com/choihocheol/wallet-exporter"
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends make git && \
     rm -rf /var/lib/apt/lists/*
