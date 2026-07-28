@@ -1,7 +1,5 @@
 FROM golang:1.22.1-bookworm AS build
 
-LABEL org.opencontainers.image.source="https://github.com/choihocheol/wallet-exporter"
-
 RUN apt-get update && \
     apt-get install -y --no-install-recommends make git && \
     rm -rf /var/lib/apt/lists/*
@@ -17,6 +15,8 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     make build
 
 FROM debian:bookworm-slim AS deploy
+
+LABEL org.opencontainers.image.source="https://github.com/choihocheol/wallet-exporter"
 
 RUN groupadd -r wallet-exporter && \
     useradd -r -g wallet-exporter wallet-exporter
